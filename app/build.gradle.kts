@@ -13,11 +13,11 @@ val secretProperties = Properties()
 secretProperties.load(secretPropertiesFile.inputStream())
 
 android {
-    namespace = "com.ritika.voy"
+    namespace = "com.kanishak.voy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ritika.voy"
+        applicationId = "com.kanishak.voy"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

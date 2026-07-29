@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/home"
-        android:name="com.ritika.voy.home.HomeFragment"
+        android:name="com.kanishak.voy.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
         <action
@@ -27,19 +27,19 @@
 
     <fragment
         android:id="@+id/history"
-        android:name="com.ritika.voy.home.HistoryFragment"
+        android:name="com.kanishak.voy.home.HistoryFragment"
         android:label="History"
         tools:layout="@layout/fragment_history" />
 
     <fragment
         android:id="@+id/eco"
-        android:name="com.ritika.voy.home.EcoFragment"
+        android:name="com.kanishak.voy.home.EcoFragment"
         android:label="Eco"
         tools:layout="@layout/fragment_eco" />
 
     <fragment
         android:id="@+id/profile"
-        android:name="com.ritika.voy.home.ProfileFragment"
+        android:name="com.kanishak.voy.home.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action
@@ -71,7 +71,7 @@
     <!-- Fragments outside bottom navigation -->
     <fragment
         android:id="@+id/chooseSpotFragment"
-        android:name="com.ritika.voy.home.ChooseSpotFragment"
+        android:name="com.kanishak.voy.home.ChooseSpotFragment"
         android:label="Choose Spot"
         tools:layout="@layout/fragment_choose_spot">
         <action
@@ -86,7 +86,7 @@
 
     <fragment
         android:id="@+id/editInfo"
-        android:name="com.ritika.voy.home.EditInfo"
+        android:name="com.kanishak.voy.home.EditInfo"
         android:label="Edit Info"
         tools:layout="@layout/fragment_edit_info">
         <action
@@ -97,12 +97,12 @@
     </fragment>
     <activity
         android:id="@+id/mapActivity"
-        android:name="com.ritika.voy.home.MapActivity"
+        android:name="com.kanishak.voy.home.MapActivity"
         android:label="activity_map"
         tools:layout="@layout/activity_map" />
     <fragment
         android:id="@+id/verifyFragment"
-        android:name="com.ritika.voy.home.VerifyFragment"
+        android:name="com.kanishak.voy.home.VerifyFragment"
         android:label="fragment_verify"
         tools:layout="@layout/fragment_verify">
         <action
@@ -119,7 +119,7 @@
     </fragment>
     <fragment
         android:id="@+id/driverVerificationFragment"
-        android:name="com.ritika.voy.home.DriverVerificationFragment"
+        android:name="com.kanishak.voy.home.DriverVerificationFragment"
         android:label="fragment_driver_verification"
         tools:layout="@layout/fragment_driver_verification">
         <action
@@ -133,7 +133,7 @@
     </fragment>
     <fragment
         android:id="@+id/uploadLicenseFragment"
-        android:name="com.ritika.voy.home.UploadLicenseFragment"
+        android:name="com.kanishak.voy.home.UploadLicenseFragment"
         android:label="fragment_upload_license"
         tools:layout="@layout/fragment_upload_license">
         <action
@@ -144,7 +144,7 @@
     </fragment>
     <fragment
         android:id="@+id/vehicleDetailsFragment"
-        android:name="com.ritika.voy.home.VehicleDetailsFragment"
+        android:name="com.kanishak.voy.home.VehicleDetailsFragment"
         android:label="fragment_vehicle_details"
         tools:layout="@layout/fragment_vehicle_details">
         <action
@@ -155,7 +155,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.ritika.voy.home.SettingsFragment"
+        android:name="com.kanishak.voy.home.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings">
         <action
@@ -171,7 +171,7 @@
     </fragment>
     <fragment
         android:id="@+id/safetyToolsFragment"
-        android:name="com.ritika.voy.home.SafetyToolsFragment"
+        android:name="com.kanishak.voy.home.SafetyToolsFragment"
         android:label="fragment_safety_tools"
         tools:layout="@layout/fragment_safety_tools">
         <action
@@ -187,7 +187,7 @@
     </fragment>
     <fragment
         android:id="@+id/myRidesFragment"
-        android:name="com.ritika.voy.home.MyRidesFragment"
+        android:name="com.kanishak.voy.home.MyRidesFragment"
         android:label="MyRidesFragment" >
         <action
             android:id="@+id/action_myRidesFragment_to_matchingMyRidesFragment"
@@ -204,7 +204,7 @@
     </fragment>
     <fragment
         android:id="@+id/matchingMyRidesFragment"
-        android:name="com.ritika.voy.home.MatchingMyRidesFragment"
+        android:name="com.kanishak.voy.home.MatchingMyRidesFragment"
         android:label="fragment_matching_my_rides"
         tools:layout="@layout/fragment_matching_my_rides" />
 </navigation>

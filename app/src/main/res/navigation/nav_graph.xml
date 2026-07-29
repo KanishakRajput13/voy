@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/splashFragment"
-        android:name="com.ritika.voy.SplashFragment"
+        android:name="com.kanishak.voy.SplashFragment"
         android:label="fragment_splash"
         tools:layout="@layout/fragment_splash">
         <action
@@ -32,7 +32,7 @@
     </fragment>
     <fragment
         android:id="@+id/continueWithEmail"
-        android:name="com.ritika.voy.ContinueWithEmail"
+        android:name="com.kanishak.voy.ContinueWithEmail"
         android:label="fragment_continue_with_email"
         tools:layout="@layout/fragment_continue_with_email">
         <action
@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.ritika.voy.authentication.LoginFragment"
+        android:name="com.kanishak.voy.authentication.LoginFragment"
         android:label="LoginFragment">
         <action
             android:id="@+id/action_loginFragment_to_forgotPasswordFragment"
@@ -81,7 +81,7 @@
     </fragment>
     <fragment
         android:id="@+id/forgotPasswordFragment"
-        android:name="com.ritika.voy.authentication.ForgotPasswordFragment"
+        android:name="com.kanishak.voy.authentication.ForgotPasswordFragment"
         android:label="fragment_forgot_password"
         tools:layout="@layout/fragment_forgot_password">
         <action
@@ -101,7 +101,7 @@
     </fragment>
     <fragment
         android:id="@+id/otpFragment"
-        android:name="com.ritika.voy.authentication.OtpFragment"
+        android:name="com.kanishak.voy.authentication.OtpFragment"
         android:label="fragment_otp"
         tools:layout="@layout/fragment_otp">
         <action
@@ -121,7 +121,7 @@
     </fragment>
     <fragment
         android:id="@+id/resetPassword"
-        android:name="com.ritika.voy.authentication.ResetPassword"
+        android:name="com.kanishak.voy.authentication.ResetPassword"
         android:label="fragment_reset_password"
         tools:layout="@layout/fragment_reset_password">
         <action
@@ -148,7 +148,7 @@
     </fragment>
     <fragment
         android:id="@+id/createAccount"
-        android:name="com.ritika.voy.authentication.CreateAccount"
+        android:name="com.kanishak.voy.authentication.CreateAccount"
         android:label="CreateAccount">
         <action
             android:id="@+id/action_createAccount_to_verifyEmailFragment"
@@ -174,7 +174,7 @@
     </fragment>
     <fragment
         android:id="@+id/verifyEmailFragment"
-        android:name="com.ritika.voy.authentication.VerifyEmailFragment"
+        android:name="com.kanishak.voy.authentication.VerifyEmailFragment"
         android:label="fragment_verify_email"
         tools:layout="@layout/fragment_verify_email">
         <action
@@ -194,7 +194,7 @@
     </fragment>
     <fragment
         android:id="@+id/verifyPhoneFragment"
-        android:name="com.ritika.voy.authentication.VerifyPhoneFragment"
+        android:name="com.kanishak.voy.authentication.VerifyPhoneFragment"
         android:label="fragment_verify_phone"
         tools:layout="@layout/fragment_verify_phone">
         <action
@@ -235,12 +235,12 @@
     </fragment>
     <activity
         android:id="@+id/mapActivity"
-        android:name="com.ritika.voy.home.MapActivity"
+        android:name="com.kanishak.voy.home.MapActivity"
         android:label="activity_home"
         tools:layout="@layout/activity_map" />
     <activity
         android:id="@+id/homeActivity"
-        android:name="com.ritika.voy.home.HomeActivity"
+        android:name="com.kanishak.voy.home.HomeActivity"
         android:label="activity_home"
         tools:layout="@layout/activity_home" />
 </navigation>

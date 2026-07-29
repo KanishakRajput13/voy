@@ -1,0 +1,361 @@
+package com.kanishak.voy.home
+
+import android.app.DatePickerDialog
+import android.app.Dialog
+import android.app.ProgressDialog
+import android.app.TimePickerDialog
+import android.content.Intent
+import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.gson.JsonParseException
+import com.kanishak.voy.R
+import com.kanishak.voy.api.DataStoreManager
+import com.kanishak.voy.api.RetrofitInstance
+import com.kanishak.voy.api.dataclasses.EndPoint
+import com.kanishak.voy.api.dataclasses.MyRideItem
+import com.kanishak.voy.api.dataclasses.OfferRideRequest
+import com.kanishak.voy.api.dataclasses.OfferRideResponse
+import com.kanishak.voy.api.dataclasses.StartPoint
+import com.kanishak.voy.api.dataclasses.UserXX
+import com.kanishak.voy.api.datamodels.SharedViewModel
+import com.kanishak.voy.geocoding_helper.GeocodingHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
+import kotlin.math.log
+
+
+class ModalBottomSheet : BottomSheetDialogFragment() {
+
+    private var previousButton: Button? = null
+    private var selectedButtonValue: String? = null
+    private var selectedDate: String? = null
+    private var selectedTime: String? = null
+    private var formattedDateTime: String? = null
+    private lateinit var dateTimePicker: TextView
+    private var startAddress: String? = null
+    private var destinationAddress: String? = null
+    private var firstMarkerLatLng: LatLng? = null
+    private var secondMarkerLatLng: LatLng? = null
+    private var user: UserXX? = null
+    private lateinit var geocodingHelper: GeocodingHelper
+    private var TAG: String = "BottomSheet"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        geocodingHelper = GeocodingHelper(requireContext())
+
+        // Retrieve LatLng objects from arguments
+        firstMarkerLatLng = arguments?.getParcelable("firstMarkerLatLng")
+        secondMarkerLatLng = arguments?.getParcelable("secondMarkerLatLng")
+        user = arguments?.getParcelable("user")
+
+        Log.d(TAG, "onCreate: $firstMarkerLatLng $secondMarkerLatLng $user")
+
+        // Perform reverse geocoding
+        lifecycleScope.launch {
+            try {
+                startAddress = firstMarkerLatLng?.let {
+                    reverseGeoCode(it.latitude, it.longitude)
+                }
+                destinationAddress = secondMarkerLatLng?.let {
+                    reverseGeoCode(it.latitude, it.longitude)
+                }
+                Log.d(
+                    TAG, "Locations: $startAddress to $destinationAddress"
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during reverse geocoding: ${e.message}")
+            }
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        return inflater.inflate(R.layout.modal_bottom_sheet, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupSeatButtons(view)
+        setupProceedButton(view)
+
+        dateTimePicker = view.findViewById(R.id.date_time_picker)
+        dateTimePicker.setOnClickListener {
+            showDatePickerDialog()
+        }
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
+        dialog.setOnShowListener {
+            val bottomSheet =
+                dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.let {
+                val behavior = BottomSheetBehavior.from(it)
+                behavior.isHideable = false
+                behavior.skipCollapsed = false
+            }
+        }
+        return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        (dialog as? BottomSheetDialog)?.behavior?.isDraggable = false
+        dialog?.setCanceledOnTouchOutside(false)
+        dialog?.window?.setDimAmount(0.0f)
+    }
+
+    private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        DatePickerDialog(
+            requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
+                selectedDate = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                showTimePickerDialog()
+            }, year, month, day
+        ).apply { setTitle("Select a Date") }.show()
+
+    }
+
+    private fun showTimePickerDialog() {
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        // Create and show the TimePickerDialog
+        TimePickerDialog(
+            requireContext(),
+            { _, selectedHour, selectedMinute ->
+                // Determine AM/PM and convert to 12-hour format
+                val amPm = if (selectedHour >= 12) "PM" else "AM"
+                val hourIn12Format = if (selectedHour % 12 == 0) 12 else selectedHour % 12
+                selectedTime = String.format("%02d:%02d %s", hourIn12Format, selectedMinute, amPm)
+                val dateTimeString = "$selectedDate $selectedTime"
+                dateTimePicker.text = formatDateTime(dateTimeString)
+            },
+            hour,
+            minute,
+            false
+        ).apply {
+            setTitle("Select Time")
+        }.show()
+    }
+
+    private fun formatDateTime(dateTime: String?): String {
+        return try {
+            val inputFormat = SimpleDateFormat("dd/M/yyyy hh:mm a", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("EEE, MMM dd, hh:mm a", Locale.getDefault())
+            val date = inputFormat.parse(dateTime ?: return "")
+            outputFormat.format(date ?: return "")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            dateTime ?: ""
+        }
+    }
+
+
+    private fun setupSeatButtons(view: View) {
+        val buttons = listOf(
+            view.findViewById<Button>(R.id.button_1),
+            view.findViewById<Button>(R.id.button_2),
+            view.findViewById<Button>(R.id.button_3),
+            view.findViewById<Button>(R.id.button_4),
+            view.findViewById<Button>(R.id.button_5)
+        )
+
+        buttons.forEachIndexed { index, button ->
+            button.setOnClickListener {
+                previousButton?.setBackgroundResource(R.drawable.seats_background)
+                selectedButtonValue = (index + 1).toString()
+                button.background = createSelectedButtonDrawable()
+                previousButton = button
+            }
+        }
+    }
+
+    private var lastFormattedDateTime: String? = null
+
+    private fun setupProceedButton(view: View) {
+        view.findViewById<Button>(R.id.proceed_button).setOnClickListener {
+            formattedDateTime = selectedDate?.let { date ->
+                selectedTime?.let { time ->
+                    formatToIso8601(date, time)
+                }
+            }
+
+            // Validate the fields before proceeding
+            if (!areFieldsValid()) {
+                Toast.makeText(
+                    requireContext(),
+                    "Please fill all required fields: Date, Time, Seat, Start, and Destination addresses.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.d(TAG, "setupProceedButton: Validation failed.")
+                return@setOnClickListener // Exit early if fields are invalid
+            }
+
+            // Prevent duplicate ride creation
+            if (formattedDateTime == lastFormattedDateTime) {
+                Toast.makeText(
+                    requireContext(),
+                    "You already have a ride scheduled at this time!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.d(TAG, "setupProceedButton: Ride creation skipped as the time is unchanged.")
+                return@setOnClickListener // Exit early if time is the same
+            }
+
+            // Proceed with ride creation
+            lifecycleScope.launch {
+                try {
+                    val authToken = DataStoreManager.getToken(requireContext(), "access").first()
+                    if (!authToken.isNullOrEmpty()) {
+                        val response = offerRide(authToken)
+
+                        // Dismiss the bottom sheet
+                        dismiss()
+                        val rides = response?.data?.let { data ->
+                            listOf(
+                                MyRideItem(
+                                    driverName = data.driver_name,
+                                    startLocation = data.start_location,
+                                    endLocation = data.end_location,
+                                    startTime = data.start_time,
+                                    status = data.status,
+                                    id = data.id,
+                                    driver = data.driver
+                                )
+                            )
+                        } ?: emptyList()
+
+                        val intent = Intent(requireContext(), HomeActivity::class.java).apply {
+                            // Pass any necessary data
+                            putExtra("show_dialog", true)
+                            putExtra("rideItems", ArrayList(rides))
+                            putExtra("user_details", user)
+                        }
+                        startActivity(intent)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error occurred while creating ride", e)
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to create ride: ${e.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun areFieldsValid(): Boolean {
+        return !selectedDate.isNullOrEmpty() && !selectedTime.isNullOrEmpty() && !startAddress.isNullOrEmpty() && !destinationAddress.isNullOrEmpty() && !selectedButtonValue.isNullOrEmpty()
+    }
+
+    private fun createSelectedButtonDrawable(): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = resources.getDimension(R.dimen.button_corner_radius)
+            setColor(ContextCompat.getColor(requireActivity(), R.color.theme_color))
+        }
+    }
+
+    fun formatToIso8601(date: String, time: String): String {
+        Log.d(TAG, "formatToIso8601: $date $time")
+        val inputDateFormat = SimpleDateFormat("dd/MM/yyyyHH:mm", Locale.getDefault())
+        val inputDate = inputDateFormat.parse("$date$time")
+        val iso8601Format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+        iso8601Format.timeZone = TimeZone.getTimeZone("UTC")
+        Log.d(TAG, "formatToIso8601:  ${iso8601Format.format(inputDate!!)}")
+        return iso8601Format.format(inputDate!!)
+    }
+
+    private suspend fun reverseGeoCode(latitude: Double, longitude: Double): String? {
+        return try {
+            val result = geocodingHelper.reverseGeocode(latitude, longitude)
+            if (result.success) result.formattedAddress else "Unknown address"
+        } catch (e: Exception) {
+            "Error retrieving address"
+        }
+    }
+
+    private suspend fun offerRide(authToken: String): OfferRideResponse? {
+        val requestBody = OfferRideRequest(
+            start_location = startAddress ?: "Unknown Start Location",
+            end_location = destinationAddress ?: "Unknown End Location",
+            start_point = StartPoint(
+                type = "Point", coordinates = listOf(
+                    firstMarkerLatLng!!.longitude, firstMarkerLatLng!!.latitude
+                )
+            ),
+            end_point = EndPoint(
+                type = "Point", coordinates = listOf(
+                    secondMarkerLatLng!!.longitude, secondMarkerLatLng!!.latitude
+                )
+            ),
+            start_time = formattedDateTime ?: "Unknown Start Time",
+            available_seats = selectedButtonValue!!.toInt()
+        )
+        Log.d(TAG, "MyLocation: $firstMarkerLatLng $secondMarkerLatLng ")
+        Log.d(TAG, "offerRide: $requestBody")
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Inside dispatcher: ${authToken} ")
+                val response = RetrofitInstance.api.offerRide("Bearer $authToken", requestBody)
+                Log.d(TAG, "offerRide here: $response")
+                if (response != null) {
+                    if (response.success) {
+                        Log.d(TAG, "Offer Ride Success: ${response.message}")
+                        response
+                    } else {
+                        Log.e(TAG, "Offer Ride Failed: ${response.error ?: "Unknown Error"}")
+                        Toast.makeText(requireContext(), "failed", Toast.LENGTH_SHORT).show()
+                        null
+                    }
+                } else {
+                    Log.e(TAG, "Offer Ride Failed: Received null response")
+                    null
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Network Error: ${e.localizedMessage}")
+                null
+            } catch (e: JsonParseException) {
+                Log.e(TAG, "Parsing Error: ${e.localizedMessage}")
+                null
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected Error: ${e.localizedMessage}")
+                null
+            }
+        }
+    }
+
+}
+
+
